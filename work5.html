@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work5: FaceDetect</title>
+  <!-- Include the Tailwind CSS CDN link -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-black text-white p-8">
+  <div>
+    <h1 class="text-2xl font-bold">Work5: FaceDetect</h1>
+    <div class="flex justify-between items-center mt-4">
+      <div>
+        <p>นายกนกศักดิ์ ชุมแสง</p>
+        <p>รหัสประจำตัว 633020382-7</p>
+      </div>
+      <div class="flex">
+        <!-- ปรับขนาดรูปให้เท่ากับขนาดของวิดีโอ -->
+        <img src="img1.jpg" alt="Image 1" class="w-20 h-20 object-cover rounded-full" style="width: 320px; height: 240px;">
+        <img src="img2.jpg" alt="Image 2" class="w-20 h-20 object-cover rounded-full ml-4" style="width: 320px; height: 240px;">
+        <!-- ใส่วีดีโอตรงนี้ -->
+        <video class="ml-4" width="320" height="240" controls>
+          <source src="work5.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+    <div class="mt-8">
+      <h2 class="text-lg font-bold">source code ของ (app)</h2>
+      <pre class="bg-gray-800 p-4 rounded-lg mt-2 overflow-auto"><code class="text-white">
+import * as React from 'react';
+import { Text, View, StyleSheet } from 'react-native';
+import Constants from 'expo-constants';
+import * as Font from 'expo-font';
+
+// You can import from local files
+import AssetExample from './components/AssetExample';
+
+import FaceView from './components/Faceview';
+
+// or any pure javascript modules available in npm
+import { Card } from 'react-native-paper';
+
+export default function App() {
+
+const [fontLoaded, setFontLoaded] = React.useState(false);
+
+React.useEffect(()=>loadFonts(setFontLoaded), [ ]);
+
+if(!fontLoaded){    
+    return <View style={{padding:50}}><Text>Loading</Text></View>
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.paragraph}>
+        Work5: FaceDectection
+      </Text>
+      <Card>
+        <FaceView />
+      </Card>
+      <Text style={styles.paragraph}> 
+        นายกนกศักดิ์ ชุมแสง รหัสประจำตัว 633020382-7
+      </Text>
+    </View>
+  );
+}
+
+async function loadFonts(setState) {  
+  await Font.loadAsync({
+    Itim   : require("./assets/Sriracha-Regular.ttf"),
+  });
+  setState(true);
+}
+
+
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingTop: Constants.statusBarHeight,
+    backgroundColor: '#ecf0f1',
+    padding: 8,
+  },
+  paragraph: {
+    margin: 24,
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+});
+
+
+        </code></pre>
+      <h2 class="text-lg font-bold mt-4">source code ของ (Faceview)</h2>
+      <pre class="bg-gray-800 p-4 rounded-lg mt-2 overflow-auto"><code class="text-white">
+        import * as React from 'react';
+        import { Text, View, StyleSheet, Image } from 'react-native';
+        import { PermissionsAndroid, Platform } from 'react-native';
+        
+        
+        import { Camera } from 'expo-camera';
+        import * as FaceDetector from 'expo-face-detector';
+        
+        async function askForCamera(setState)
+        {
+          const {status} = await Camera.requestCameraPermissionsAsync();
+          setState(status==="granted")
+        }
+        
+        
+        var glasses = 0;
+        var switchGlass = false;
+        
+        export default function FaceView() {
+        
+        
+          const [hasCamera, setHasCamera] = React.useState(false);
+          const [type, setType] = React.useState(Camera.Constants.Type.front);
+          const [faces, setFaces] = React.useState(null);
+        
+          React.useEffect(()=>askForCamera(setHasCamera),[]);
+          
+          if(!hasCamera){
+             return <View style={styles.container}><Text>ไม่มีกล้อง</Text></View>
+          }
+          
+            if(faces!=null && faces.faces.length >0){
+             var f = faces.faces[0]; 
+             var faceText = JSON.stringify(f);
+             var pos={x:0, y:0};
+             
+             var leftOpen = f.rightEyeOpenProbability;
+             var rightOpen = f.leftEyeOpenProbability;
+             var blinkEye = (leftOpen+rightOpen)/2;
+        
+             if(f.LEFT_EYE != null){
+                pos=f.LEFT_EYE;
+             }
+             
+             if(blinkEye < 0.1){
+               switchGlass = true;
+             }
+             if(f.smilingProbability > 0.7){
+               var leftmouth = f.LEFT_MOUTH;
+               var rightmouth = f.RIGHT_MOUTH;
+               var imgMouth1 = <Image 
+                  source={require("../assets/emoji.png")}
+                  style={{position:"absolute",width:30,height:30,left:leftmouth.x,top:leftmouth.y}} 
+                  />;
+               var imgMouth2 = <Image 
+                  source={require("../assets/emoji.png")}
+                  style={{position:"absolute",width:30,height:30,left:rightmouth.x-40,top:rightmouth.y}} 
+                  />;
+             }  
+          
+          
+            var img1 = SwitchGalsses(switchGlass,pos.x,pos.y);
+             //faceText = JSON.stringify(pos);
+          
+            }
+          
+          return (
+            <View style={styles.container}>
+              <Camera type={type} style={{height: "100%", width:"100%"}}
+                onFacesDetected = {setFaces} 
+                faceDetectorSettings={{
+                mode: FaceDetector.FaceDetectorMode.fast,
+                detectLandmarks: FaceDetector.FaceDetectorLandmarks.all,
+                runClassifications: FaceDetector.FaceDetectorClassifications.all,
+                minDetectionInterval: 100,
+                tracking: true,
+                }}
+              />
+              
+              {imgMouth1}
+              {imgMouth2}
+              {img1}
+              
+            </View>
+          );
+        }
+        
+        const styles = StyleSheet.create({
+          container: {
+            justifyContent: 'center',
+            padding: 5,
+            height : 400,
+          }
+        });
+        function SwitchGalsses(isSwitch,x,y){
+          var img1 = <Image 
+                    source={require("../assets/sun.png")}
+                    style={{position:"absolute",width:200,height:100,left:x-130,top:y-50,}} 
+                    />;
+          if(isSwitch){
+            if(glasses == 1){
+                    img1 = <Image 
+                    source={require("../assets/sun.png")}
+                    style={{position:"absolute",width:200,height:100,left:x-130,top:y-50}} 
+                    />;
+                    glasses = 0;
+                }else{
+                   img1 = <Image 
+                    source={require("../assets/sunglasses.png")}
+                    style={{position:"absolute",width:200,height:100,left:x-130,top:y-50}} 
+                    />;
+                    glasses = 1;
+                
+                }
+                switchGlass = false;
+          }else{
+                if(glasses == 1){
+                 img1 = <Image 
+                    source={require("../assets/sunglasses.png")}
+                    style={{position:"absolute",width:200,height:100,left:x-130,top:y-50}} 
+                    />;
+                    glasses = 1;
+                }else{
+                  img1 = <Image 
+                    source={require("../assets/sun.png")}
+                    style={{position:"absolute",width:200,height:100,left:x-130,top:y-50}} 
+                    />;
+                    glasses = 0;
+                }
+          }
+          return img1;
+        }
+      </code></pre>
+    </div>
+  </div>
+  <!-- เพิ่มปุ่ม Back -->
+  <div class="fixed bottom-0 left-0 w-full bg-gray-900 p-4">
+    <a href="index.html" class="text-white text-lg font-bold">Back</a>
+  </div>
+</body>
+</html>

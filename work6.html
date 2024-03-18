@@ -1,0 +1,300 @@
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Work6 Firebase</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.4.10/dist/vuetify.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    
+    <style>
+      .v-container {
+          background-color: #000000; 
+      }
+      #app {
+        width: 100%;
+        height: 100vh;
+        background-color: #000000; 
+    }
+      .custom-card-title {
+        background-color: #079b42; 
+    }
+    .edit-button {
+      color: #0004ff; 
+    
+    }
+    .delete-button {
+      color: #bb1313;
+    }
+    .blue {
+        color: #ffffff;
+        background-color: #0616c3; 
+        
+    }
+    .white {
+        color: #000000;
+      background-color:#ffffff
+    }
+    .red {
+      color: #ffffff;
+      background-color:#990000
+      
+      
+    }
+    .green{
+      color: #ffffff;
+      background-color:#079b42
+    }
+    .gray{
+      background-color:rgb(233, 231, 246)
+    }
+    .dark{
+      color: #ffffff;
+      background-color: #000000;
+    }
+    
+  </style>
+  </head>
+  <body class="dark">
+    
+    <div id="app">
+      
+      <v-app class="dark">
+        <v-container>
+          <v-card>
+            <v-card-title class="gray">{{ title }}</v-card-title>
+
+            <v-card-text class="pa-6" >
+                <v-card-actions>
+                    <template v-if="user">
+                      <div class="pa-2">
+                          <v-avatar><img :src="user.photoURL" /></v-avatar>
+                      </div>
+                      <div class="pa-2">
+                          {{user.displayName}}<br />
+                          {{user.email}}<br />
+                    
+                          
+
+                      </div>
+                     
+                  </template>
+
+                  <v-btn @click="google_login()"  v-if="!user" class="green"> Login</v-btn>
+                  <v-btn @click="google_logout()" v-if="user" class="red"> Logout</v-btn>
+                   
+                </v-card-actions>
+               
+              
+                
+                
+                <br/>
+                <br/>
+              <table width="100%" class="white">
+                <thead>
+                  <tr>
+                    <td>รหัส</td>
+                    <td>คำนำหน้า</td>
+                    <td>ชื่อ</td>
+                    <td>สกุล</td>
+                    <td>Email</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(s) in students">
+                    <td>{{s.id}}</td>
+                    <td>{{s.title}}</td>
+                    <td>{{s.fname}}</td>
+                    <td>{{s.lname}}</td>
+                    <td>{{s.email}}</td>
+                    <td>
+                      <v-btn class="edit-button" @click="edit(s)" class="dark">EDIT</v-btn>
+                      <v-btn class="delete-button" @click="deleteData(s)" class="red">DELETE</v-btn>
+                    </td>
+                  </tr>
+                <tr v-if="ustudent">
+                  <td>{{ustudent.id}}</td>
+                  <td>{{ustudent.title}}</td>
+                  <td>{{ustudent.fname}}</td>
+                  <td>{{ustudent.lname}}</td>
+                  <td>{{ustudent.email}}</td>
+                  <td>
+                    <v-btn @click="edit(ustudent)" class="blue">EDIT</v-btn>
+                    <v-btn @click="deleteData(ustudent)" class="red">DELETE</v-btn>
+                  </td>
+
+
+                </tr>
+                </tbody>
+              </table>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-btn @click="readData()" class="blue">Read Data (get)</v-btn>
+              <v-btn @click="autoRead()" class="blue">Auto Read (onSnapshot)</v-btn>
+              <v-btn @click="addData()" class="blue">Add Data</v-btn>
+            </v-card-actions>
+          </v-card>
+          <v-card v-if="editmode" class="gray">
+            <v-card-text class="pa-6">
+              <v-card-title class="blue">{{editmode}}</v-card-title>
+              <v-text-field v-model="editstd.id" label="รหัส" ></v-text-field>
+              <v-combobox
+                v-model="editstd.title"
+                label="คำนำหน้า"
+                :items="['นาย','นาง','นางสาว','ด.ช.','ด.ญ']"
+              ></v-combobox>
+              <v-text-field v-model="editstd.fname" label="ชื่อ"></v-text-field>
+              <v-text-field
+                v-model="editstd.lname"
+                label="นามสกุล"
+              ></v-text-field>
+              <v-text-field
+                v-model="editstd.email"
+                label="E-mail"
+              ></v-text-field>
+            </v-card-text>
+            <v-card-actions>
+              <v-btn @click="savedata()" class="green">Save</v-btn>
+              <v-btn @click="editmode=0" class="red">Cancel</v-btn>
+            </v-card-actions>
+          </v-card>
+
+          
+          <div class="pa-6 text-center">
+            {{footer}}
+          </div>
+          
+          <div style="display: flex; justify-content: center;">
+            <v-btn href="index.html" class="red">BACK TO HOME</v-btn>
+          </div>
+          
+
+        </v-container>
+      </v-app>
+    </div>
+
+    <script>
+const firebaseConfig = {
+    apiKey: "AIzaSyBEIjcJXZ-IDoIil2S-kbTRc3fkjUkDzR8",
+    authDomain: "web-2566-1e439.firebaseapp.com",
+    projectId: "web-2566-1e439",
+    storageBucket: "web-2566-1e439.appspot.com",
+    messagingSenderId: "605251529117",
+    appId: "1:605251529117:web:4defec54479585f71ee774",
+    measurementId: "G-K3YQLKNQC3"
+  };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      const vuetify = Vuetify.createVuetify();
+      const app = Vue.createApp({
+        data() {
+          return {
+            title: "Work 6 : เรียกใช้ฐานข้อมูล Firebase",
+            footer: "นายกนกศักดิ์ ชุมแสง รหัสประจำตัว 633020382-7",
+            students: [],
+            editstd: {},
+            editmode: 0,
+            user: null,
+            ustudent: null,
+          };
+        },
+        mounted() {
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            this.user = user.toJSON();
+        } else {
+            this.user = null;
+        }
+    });
+},
+
+
+
+
+        methods: {
+          readData() {
+            db.collection("students")
+              .get()
+              .then((querySnapshot) => {
+                var stdlist = [];
+                querySnapshot.forEach((doc) => {
+                  stdlist.push({ id: doc.id, ...doc.data() });
+                });
+                this.students = stdlist;
+              });
+          },
+          autoRead() {
+            db.collection("students").onSnapshot((querySnapshot) => {
+              var stdlist = [];
+              querySnapshot.forEach((doc) => {
+                stdlist.push({ id: doc.id, ...doc.data() });
+              });
+              this.students = stdlist;
+            });
+          },
+          edit(std) {
+            this.editstd = std;
+            this.editmode = "แก้ไขข้อมูล";
+          },
+          savedata() {
+            db.collection("students").doc(this.editstd.id).set(this.editstd);
+          },
+          deleteData(std) {
+            if (confirm("ต้องการลบข้อมูล")) {
+              db.collection("students").doc(std.id).delete();
+            }
+          },
+          addData() {
+            this.editmode = "เพิ่มนักเรียน";
+            this.editstd = {};
+          },
+          google_login() {
+            // Using a popup.
+            var provider = new firebase.auth.GoogleAuthProvider();
+            provider.addScope("profile");
+            provider.addScope("email");
+            firebase.auth().signInWithPopup(provider);
+          },
+
+          google_logout(){
+            if(confirm("Are you sure?")){
+              firebase.auth().signOut();
+            }
+          },
+          getstudent(email){
+            db.collection("students")
+              .where("email","==",email)
+              .limit(1)
+              .get()
+              .then(
+                (querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                  this.ustudent = { id: doc.id, ...doc.data() };
+                });
+              }
+            );
+          
+          }
+          
+
+
+
+
+        }
+      });
+      app.use(vuetify).mount("#app");
+      
+    </script>
+    
+  </body>
+</html>

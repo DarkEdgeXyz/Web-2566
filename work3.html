@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Work3: Vue.js And Vuetify</title>
+  <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/vuetify@2.5.8/dist/vuetify.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: black;
+      color: white;
+    }
+    #app {
+      background-color: black;
+      color: white;
+    }
+    .hidden {
+      display: none;
+    }
+    .center-content {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <v-app>
+    <v-container>
+      <v-row justify="center">
+        <v-col cols="12">
+          <v-card>
+            <v-card-title class="headline grey lighten-2">
+              <span class="title text-h4">Work3: สร้างเกมจับคู่ภาพบนเว็บโดยใช้ Vue.js และ Vuetify</span>
+            </v-card-title>
+          </v-card>
+        </v-col>
+      </v-row>
+      <v-row justify="center">
+        <v-col cols="12" class="text-center">
+          <v-btn color="success" @click="startGame" v-show="!gameStarted">Play Game</v-btn>
+          <v-btn color="error" @click="redirectToHomepage" v-show="!gameStarted">Back to Homepage</v-btn>
+        </v-col>
+        <v-col v-for="(image, index) in images" :key="index" cols="2" class="text-center">
+          <img v-if="gameStarted && !image.matched" :src="image.src" width="100" height="100" @click="selectImage(index)" />
+          <v-btn v-show="gameStarted && index === images.length - 1" color="error" @click="exitGame">Exit Game</v-btn>
+        </v-col>
+      </v-row>
+      <v-dialog v-model="winDialog" max-width="400">
+        <v-card>
+          <v-card-title class="headline">You Win!</v-card-title>
+          <v-card-actions>
+            <v-btn color="primary" @click="resetGameAndCloseDialog">OK</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-container>
+
+    <v-footer color="black" dark>
+      <v-row class="text-h6 mt-2">
+        <span>นายกนกศักดิ์ ชุมแสง รหัสประจำตัว 633020382-7 สาขาวิชาวิทยาการคอมพิวเตอร์ วิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น</span>
+      </v-row>
+    </v-footer>
+  </v-app>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.5.8/dist/vuetify.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    vuetify: new Vuetify(),
+    data: {
+      gameStarted: false,
+      winDialog: false,
+      images: [],
+      selectedImages: [],
+      lastSelectedIndex: -1,
+    },
+    methods: {
+      startGame() {
+        this.gameStarted = true;
+        this.initImages();
+      },
+      initImages() {
+        const shuffledIndices = Array.from({ length: 36 }, (_, index) => index % 18);
+        this.shuffleArray(shuffledIndices);
+
+        const shuffledImages = shuffledIndices.map(index => {
+          return { src: `Work1/${index + 1}.jpg`, matched: false };
+        });
+
+        this.images = shuffledImages;
+        this.images.forEach(image => {
+          if (!image.matched) {
+            image.src = 'Work1/0.jpg';
+          }
+        });
+      },
+      shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+      },
+      selectImage(index) {
+        if (this.selectedImages.length === 2 || this.selectedImages.includes(index)) return;
+
+        const selectedImage = this.images[index];
+        selectedImage.src = `Work1/${index % 18 + 1}.jpg`;
+        this.selectedImages.push(index);
+
+        if (this.selectedImages.length === 2) {
+          const [firstIndex, secondIndex] = this.selectedImages;
+          if (this.images[firstIndex].src === this.images[secondIndex].src) {
+
+            this.images[firstIndex].matched = true;
+            this.images[secondIndex].matched = true;
+            this.selectedImages = [];
+            if (this.images.every(image => image.matched)) {
+              this.winDialog = true;
+            }
+          } else {
+       
+            setTimeout(() => {
+              this.images[firstIndex].src = 'Work1/0.jpg';
+              this.images[secondIndex].src = 'Work1/0.jpg';
+              this.selectedImages = [];
+            }, 1000);
+          }
+        }
+      },
+      resetGameAndCloseDialog() {
+        this.gameStarted = false;
+        this.winDialog = false;
+        this.images = [];
+        this.selectedImages = [];
+        this.lastSelectedIndex = -1;
+      },
+      redirectToHomepage() {
+        window.location.href = "index.html";
+      },
+      exitGame() {
+        this.gameStarted = false;
+        this.images = [];
+        this.selectedImages = [];
+        this.lastSelectedIndex = -1;
+      }
+    }
+  })
+</script>
+
+</body>
+</html>

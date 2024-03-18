@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>Work2: A frame</title>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <a-scene>
+    <a-camera position="0 1 0" id="myCamera">
+      <a-cursor intersection-spawn="Event; click; mixin;voxel;"></a-cursor>
+    </a-camera>
+      <a-assets>
+        <img id="image" src="https://scontent.fkkc3-1.fna.fbcdn.net/v/t39.30808-6/331984838_903532794184830_7740567049515708038_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=5f2048&_nc_ohc=RxfPinuwgasAX_myAlI&_nc_ht=scontent.fkkc3-1.fna&oh=00_AfC09rs_OmWzqGb6t918wLUMQiW5McQG4VehiSTHTcvxLg&oe=65FBF64A" crossorigin="anonymous">
+        <img id="image1" src="https://cdn.pixabay.com/photo/2017/03/17/06/47/homepage-2151047_960_720.png" crossorigin="anonymous">
+        <img id="sky" src="https://lh3.googleusercontent.com/05JfZ1ZdyzrRNvhJosUFdcjjJRFE7k2KhmeM2ujqeCbrcrCb1hkq7O_JdUBpQ3r9hi0YeSn4WgmKx3Ai8LHdM2SucxSzl9TRZ4fCAqETJ6WtHgE=w1440-e365" crossorigin="anonymous">
+      </a-assets>
+    <a-image src="#image" width="7" height="7" position="0 1 -5"></a-image>
+    <a-box id="click" position="4 1 -4" src="#image1"></a-box>
+    <a-box position="3 3 -5" animation="property: position; to: 1 4 -3; dur: 2000; easing: linear; loop: true" src="#image"></a-box>
+    <a-box position="-3 -3 -5" animation="property: position; to: 1 2 -1; dur: 3000; easing: linear; loop: true" src="#image"></a-box>
+    <a-text value="My name Kanoksuk Chumsang" position="0 1 -4"></a-text>
+    <a-sky src="#sky"></a-sky>
+  </a-scene>
+  </body>
+  <script>
+    document
+      .querySelector("#click")
+      .addEventListener("mouseenter", e =>{
+        location.href = "index.html";
+      });
+  </script>
+</html>
